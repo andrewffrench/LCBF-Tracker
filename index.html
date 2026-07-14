@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LCBF 2026 Companion</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Config to extend colors or utilities if needed -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            festival: '#FF9F1C',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Prevent text selection and rubber-banding on mobile for an app-like feel */
+    body {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans pb-24">
+
+  <!-- Sticky Top Header with Profile and Active Pour Config -->
+  <header class="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-800 z-30 p-4 shadow-lg">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Festival Companion</h1>
+        <button id="profileName" onclick="editName()" class="text-lg font-bold text-festival flex items-center gap-1 hover:opacity-85">
+          <span>Your Name</span> ✏️
+        </button>
+      </div>
+      
+      <!-- Big Unit Counter with Dynamic Color State -->
+      <div id="unitDisplay" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-xl text-center min-w-24 transition-colors duration-300">
+        <span class="block text-xs uppercase font-medium tracking-wide">My Units</span>
+        <span id="totalUnitsText" class="text-2xl font-black">0.00</span>
+      </div>
+    </div>
+
+    <!-- Pour Size Toggle -->
+    <div class="max-w-md mx-auto mt-4 grid grid-cols-3 gap-2 bg-slate-950 p-1 rounded-lg border border-slate-800">
+      <button onclick="setPourSize(100, this)" class="pour-btn py-2 text-xs font-bold rounded-md bg-festival text-slate-950 transition-all">
+        100ml <span class="block text-[10px] font-normal opacity-80">Taster</span>
+      </button>
+      <button onclick="setPourSize(190, this)" class="pour-btn py-2 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all">
+        1/3 Pint <span class="block text-[10px] font-normal opacity-80">~190ml</span>
+      </button>
+      <button onclick="setPourSize(284, this)" class="pour-btn py-2 text-xs font-bold rounded-md text-slate-400 hover:text-slate-200 transition-all">
+        1/2 Pint <span class="block text-[10px] font-normal opacity-80">~284ml</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Scrollable Content -->
+  <main class="flex-1 max-w-md mx-auto w-full px-4 pt-4 space-y-6">
+
+    <!-- Search Input -->
+    <section>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-3 flex items-center text-slate-500">🔍</span>
+        <input 
+          type="text" 
+          id="searchBar" 
+          oninput="filterBeers()" 
+          placeholder="Search by beer or brewery..." 
+          class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-festival focus:ring-1 focus:ring-festival transition-all"
+        />
+      </div>
+    </section>
+
+    <!-- Interactive Beer List -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-slate-300 flex items-center gap-2">
+          🍺 Beers on Tap <span id="beerCount" class="text-xs font-semibold px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full">0</span>
+        </h2>
+      </div>
+      <div id="beerList" class="space-y-3">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Bottom Drawer for Leaderboard & History -->
+  <div class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 shadow-2xl z-40">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <button onclick="toggleHistoryModal(true)" class="flex items-center gap-2 text-slate-400 hover:text-slate-200 text-sm font-semibold py-2">
+        📜 My Log (<span id="logCount">0</span>)
+      </button>
+      <button onclick="toggleLeaderboard(true)" class="bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-750 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
+        🏆 Leaderboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal Panel -->
+  <div id="leaderboardModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl transform translate-y-0 transition-transform max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-black text-slate-100 flex items-center gap-2">🏆 Live Group Standings</h3>
+        <button onclick="toggleLeaderboard(false)" class="text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
+      </div>
+      <div id="leaderboardList" class="space-y-2">
+        <!-- Leaderboard items rendered here -->
+      </div>
+      <p class="text-[10px] text-center text-slate-500 italic mt-4">⚠️ Keep track safely! Alternate water between high-ABV beers.</p>
+    </div>
+  </div>
+
+  <!-- History Modal Panel -->
+  <div id="historyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-black text-slate-100">📜 Your Festival History</h3>
+        <button onclick="toggleHistoryModal(false)" class="text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
+      </div>
+      <div id="historyList" class="space-y-3">
+        <!-- List of consumed beers -->
+      </div>
+      <button onclick="clearAllLogs()" class="w-full py-2 bg-red-950/40 hover:bg-red-900/30 border border-red-900/50 text-red-400 text-xs font-semibold rounded-xl mt-4 transition-all">
+        Clear All History
+      </button>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Logic -->
+  <script>
+    // 1. Mock Beer Data (Using your admin-ajax.php snippet schema + realistic options)
+    const beerDatabase = [
+      {
+        "wab_beer_id": 5861034,
+        "beer_name": "Beer cut with Mango",
+        "brewer_name": "JUBEL",
+        "abv": "4.0",
+        "untappd_style": "Fruit Beer",
+        "description": "A light lager with a tropical twist. This beer bursts with juicy mango."
+      },
+      {
+        "wab_beer_id": 2609315,
+        "beer_name": "Beer cut with Peach",
+        "brewer_name": "JUBEL",
+        "abv": "4.0",
+        "untappd_style": "Fruit Beer",
+        "description": "A lively lager that packs a fruity punch. This nectar drips with fresh peaches."
+      },
+      {
+        "wab_beer_id": 9901122,
+        "beer_name": "Ghost Ship Sour",
+        "brewer_name": "Adnams",
+        "abv": "4.5",
+        "untappd_style": "Sour - Gose",
+        "description": "Crisp and refreshing with a tart lemon twist."
+      },
+      {
+        "wab_beer_id": 8812304,
+        "beer_name": "Sputnik",
+        "brewer_name": "Northern Monk",
+        "abv": "5.0",
+        "untappd_style": "Pale Ale - American",
+        "description": "Hazy, juice-forward pale ale packed with hops."
+      },
+      {
+        "wab_beer_id": 7713405,
+        "beer_name": "Origin Imperial Stout",
+        "brewer_name": "The Kernel",
+        "abv": "10.5",
+        "untappd_style": "Stout - Imperial",
+        "description": "Rich, dark, coffee-like, and dangerously smooth."
+      }
+    ];
+
+    // 2. Mock Friends' Unit tallies
+    const mockFriends = [
+      { name: "Dave", units: 3.4 },
+      { name: "Sarah (Designated Driver)", units: 0.0 },
+      { name: "Alex", units: 5.8 }
+    ];
+
+    // 3. Application State
+    let userProfile = {
+      name: localStorage.getItem('lcbf_name') || 'Beer Fan',
+      logs: JSON.parse(localStorage.getItem('lcbf_logs')) || [],
+      activePourSize: 100 // default ml
+    };
+
+    // 4. Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('profileName').firstElementChild.innerText = userProfile.name;
+      renderBeerList(beerDatabase);
+      updateDashboard();
+    });
+
+    // 5. Change Active Pour Size
+    function setPourSize(size, element) {
+      userProfile.activePourSize = size;
+      document.querySelectorAll('.pour-btn').forEach(btn => {
+        btn.classList.remove('bg-festival', 'text-slate-950');
+        btn.classList.add('text-slate-400', 'hover:text-slate-200');
+      });
+      element.classList.remove('text-slate-400', 'hover:text-slate-200');
+      element.classList.add('bg-festival', 'text-slate-950');
+    }
+
+    // 6. Profile Name Configuration
+    function editName() {
+      const newName = prompt("Enter your name for the group leaderboard:", userProfile.name);
+      if (newName && newName.trim() !== "") {
+        userProfile.name = newName.trim();
+        localStorage.setItem('lcbf_name', userProfile.name);
+        document.getElementById('profileName').firstElementChild.innerText = userProfile.name;
+        updateDashboard();
+      }
+    }
+
+    // 7. Render Beer Cards
+    function renderBeerList(beers) {
+      const listContainer = document.getElementById('beerList');
+      document.getElementById('beerCount').innerText = beers.length;
+      
+      if (beers.length === 0) {
+        listContainer.innerHTML = `
+          <div class="text-center py-8 text-slate-500 text-sm">
+            No matching beers found. Try searching something else!
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = beers.map(beer => {
+        // Calculate dynamic value of 1 tap for visual feedback
+        const unitEstimate = ((parseFloat(beer.abv) * userProfile.activePourSize) / 1000).toFixed(2);
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-md hover:border-slate-700 transition-all">
+            <div class="space-y-1">
+              <div class="flex items-start justify-between">
+                <h4 class="font-bold text-slate-100 text-base leading-tight">${beer.beer_name}</h4>
+                <span class="bg-slate-800 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md shrink-0 ml-2">
+                  ${beer.abv}%
+                </span>
+              </div>
+              <p class="text-xs font-semibold text-festival uppercase tracking-wider">${beer.brewer_name}</p>
+              <p class="text-slate-400 text-xs line-clamp-2 mt-1 leading-normal">${beer.description}</p>
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
+              <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wide">
+                Est. Style: <span class="text-slate-400 font-medium normal-case">${beer.untappd_style}</span>
+              </span>
+              <button 
+                onclick="logBeer(${beer.wab_beer_id})" 
+                class="bg-festival text-slate-950 text-xs font-extrabold px-4 py-2 rounded-lg active:scale-95 transition-transform"
+              >
+                + Log Pour
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 8. Log Beer Selection
+    function logBeer(id) {
+      const beer = beerDatabase.find(b => b.wab_beer_id === id);
+      if (!beer) return;
+
+      const unitsCalculated = (parseFloat(beer.abv) * userProfile.activePourSize) / 1000;
+      
+      const newEntry = {
+        id: id,
+        name: beer.beer_name,
+        brewer: beer.brewer_name,
+        abv: beer.abv,
+        size: userProfile.activePourSize,
+        units: unitsCalculated,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      userProfile.logs.push(newEntry);
+      localStorage.setItem('lcbf_logs', JSON.stringify(userProfile.logs));
+      
+      updateDashboard();
+      triggerButtonFeedback();
+    }
+
+    // 9. Update Metrics and Colors
+    function updateDashboard() {
+      // Aggregate Units
+      const totalUnits = userProfile.logs.reduce((sum, log) => sum + log.units, 0);
+      document.getElementById('totalUnitsText').innerText = totalUnits.toFixed(2);
+      document.getElementById('logCount').innerText = userProfile.logs.length;
+
+      // Color Coding System based on safely warning users of threshold levels
+      const display = document.getElementById('unitDisplay');
+      display.className = "px-4 py-2 rounded-xl text-center min-w-24 border transition-colors duration-300 ";
+      
+      if (totalUnits < 4) {
+        // Safe Zone
+        display.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+      } else if (totalUnits < 8) {
+        // Warning Zone
+        display.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-400');
+      } else {
+        // Danger Zone
+        display.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+      }
+
+      renderLeaderboard();
+      renderHistory();
+    }
+
+    // 10. Search Filter logic
+    function filterBeers() {
+      const query = document.getElementById('searchBar').value.toLowerCase();
+      const filtered = beerDatabase.filter(beer => 
+        beer.beer_name.toLowerCase().includes(query) || 
+        beer.brewer_name.toLowerCase().includes(query)
+      );
+      renderBeerList(filtered);
+    }
+
+    // 11. Render Leaderboard including Live Mock Standings
+    function renderLeaderboard() {
+      const myTotalUnits = userProfile.logs.reduce((sum, log) => sum + log.units, 0);
+      
+      // Combine My dynamic live units with mock friend tallies
+      const data = [
+        { name: userProfile.name + " (You)", units: myTotalUnits, isUser: true },
+        ...mockFriends
+      ];
+
+      // Sort Descending
+      data.sort((a, b) => b.units - a.units);
+
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = data.map((person, index) => {
+        let rankBadge = `${index + 1}.`;
+        if (index === 0) rankBadge = "🥇";
+        if (index === 1) rankBadge = "🥈";
+        if (index === 2) rankBadge = "🥉";
+
+        return `
+          <div class="flex items-center justify-between p-3 rounded-xl border ${person.isUser ? 'bg-festival/10 border-festival/30 text-festival' : 'bg-slate-950 border-slate-800 text-slate-300'}">
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-black">${rankBadge}</span>
+              <span class="font-bold text-sm ${person.isUser ? 'text-slate-100' : ''}">${person.name}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-semibold block text-slate-500">Units</span>
+              <span class="text-sm font-extrabold">${person.units.toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 12. Render Log History List
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (userProfile.logs.length === 0) {
+        list.innerHTML = `<p class="text-center text-sm text-slate-500 py-6">Your logged pours show up here!</p>`;
+        return;
+      }
+
+      list.innerHTML = userProfile.logs.map((log, index) => {
+        return `
+          <div class="flex items-center justify-between bg-slate-950 border border-slate-850 p-3 rounded-xl">
+            <div>
+              <h5 class="text-xs font-bold text-slate-200">${log.name}</h5>
+              <p class="text-[10px] text-slate-400">${log.brewer} • ${log.size}ml @ ${log.timestamp}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-extrabold text-festival">${log.units.toFixed(2)} u</span>
+              <button onclick="removeLog(${index})" class="text-slate-500 hover:text-red-400 text-lg font-bold px-1">&times;</button>
+            </div>
+          </div>
+        `;
+      }).reverse().join(''); // Show newest on top
+    }
+
+    // 13. Remove Single Log
+    function removeLog(index) {
+      userProfile.logs.splice(userProfile.logs.length - 1 - index, 1);
+      localStorage.setItem('lcbf_logs', JSON.stringify(userProfile.logs));
+      updateDashboard();
+    }
+
+    // 14. Clear All Logs
+    function clearAllLogs() {
+      if (confirm("Are you sure you want to clear your drinking history for today?")) {
+        userProfile.logs = [];
+        localStorage.setItem('lcbf_logs', JSON.stringify([]));
+        updateDashboard();
+        toggleHistoryModal(false);
+      }
+    }
+
+    // Modal Display Controls
+    function toggleLeaderboard(show) {
+      document.getElementById('leaderboardModal').classList.toggle('hidden', !show);
+    }
+
+    function toggleHistoryModal(show) {
+      document.getElementById('historyModal').classList.toggle('hidden', !show);
+    }
+
+    // Fast screen-shake or color pop visual feedback on mobile tap
+    function triggerButtonFeedback() {
+      const text = document.getElementById('totalUnitsText');
+      text.classList.add('scale-125', 'text-white');
+      setTimeout(() => {
+        text.classList.remove('scale-125', 'text-white');
+      }, 150);
+    }
+  </script>
+</body>
+</html>
