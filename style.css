@@ -1,0 +1,7 @@
+/* Prevent text selection and rubber-banding on mobile for an app-like feel */
+	body { 
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
