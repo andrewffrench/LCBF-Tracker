@@ -1,0 +1,24 @@
+{
+  "name": "lcbf-tracker",
+  "version": "1.0.0",
+  "description": "London Craft Beer Festival Tracker",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npx http-server -p 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewffrench/LCBF-Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andrewffrench/LCBF-Tracker/issues"
+  },
+  "homepage": "https://github.com/andrewffrench/LCBF-Tracker#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
