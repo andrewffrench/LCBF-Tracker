@@ -60,16 +60,57 @@
 
     <!-- Search Input -->
     <section>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-3 flex items-center text-slate-500">🔍</span>
-        <input 
-          type="text" 
-          id="searchBar" 
-          oninput="filterBeers()" 
-          placeholder="Search by beer or brewery..." 
-          class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-festival focus:ring-1 focus:ring-festival transition-all"
-        />
-      </div>
+      <!-- Search, Filter & Sort Controls -->
+<div class="space-y-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-md">
+  <!-- Existing Search Input -->
+  <div class="relative">
+    <input 
+      id="searchBar" 
+      type="text" 
+      oninput="filterBeers()" 
+      placeholder="Search by beer or brewery..." 
+      class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-xl pl-10 pr-4 py-3 focus:border-festival focus:ring-0 placeholder-slate-500"
+    >
+    <span class="absolute left-3 top-3.5 text-slate-500">🔍</span>
+  </div>
+
+  <!-- Filter & Sort Row -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+    <!-- Style Filter Dropdown -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Beer Style</label>
+      <select id="filterStyle" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="all">All Styles</option>
+        <option value="hoppy">IPAs & Pale Ales</option>
+        <option value="dark">Stouts, Porters & Darks</option>
+        <option value="sour">Sours, Wilds & Saisons</option>
+        <option value="crisp">Lagers, Pilsners & Light</option>
+      </select>
+    </div>
+
+    <!-- Status Filter Dropdown (Untried vs Logged) -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Logged Status</label>
+      <select id="filterStatus" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="all">All Beers</option>
+        <option value="untried">Not Yet Tried ❌</option>
+        <option value="logged">Already Logged ✅</option>
+      </select>
+    </div>
+
+    <!-- Sorting Dropdown -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Sort By</label>
+      <select id="sortOption" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="featured">Default (Featured)</option>
+        <option value="abv_desc">ABV: High to Low 📉</option>
+        <option value="abv_asc">ABV: Low to High 📈</option>
+        <option value="name_asc">Beer Name: A-Z</option>
+        <option value="brewer_asc">Brewery Name: A-Z</option>
+      </select>
+    </div>
+  </div>
+</div>
     </section>
 
     <!-- Interactive Beer List -->
@@ -127,6 +168,166 @@
       </button>
     </div>
   </div>
+
+  <!-- Beer Detail Modal -->
+<div id="beerDetailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeBeerDetail()">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150">
+    <!-- Modal Header -->
+    <div class="p-6 pb-4 border-b border-slate-800/80 flex items-start justify-between">
+      <div>
+        <span id="modalBeerStyle" class="text-[10px] uppercase font-black text-festival tracking-widest block mb-1">STYLE</span>
+        <h3 id="modalBeerName" class="text-xl font-black text-slate-100 leading-tight">Beer Name</h3>
+        <p id="modalBeerBrewer" class="text-sm font-semibold text-slate-400 mt-1">Brewer Name</p>
+      </div>
+      <button onclick="closeBeerDetail()" class="text-slate-400 hover:text-slate-200 text-2xl font-bold p-1 leading-none">&times;</button>
+    </div>
+    
+    <!-- Modal Content -->
+    <div class="p-6 space-y-5 overflow-y-auto">
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-950 border border-slate-850 p-3 rounded-xl text-center">
+          <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wide block">ABV</span>
+          <span id="modalBeerABV" class="text-lg font-black text-slate-100">0.0%</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-850 p-3 rounded-xl text-center">
+          <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wide block">Est. Units</span>
+          <span id="modalBeerUnits" class="text-lg font-black text-festival">0.00 u</span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-1.5">
+        <h4 class="text-xs uppercase font-bold text-slate-500 tracking-wide">Description</h4>
+        <p id="modalBeerDescription" class="text-sm text-slate-300 leading-relaxed bg-slate-950/40 p-4 rounded-xl border border-slate-850/60 whitespace-pre-line">
+          Beer description goes here...
+        </p>
+      </div>
+
+      <!-- Group Activity -->
+      <div class="space-y-2">
+        <h4 class="text-xs uppercase font-bold text-slate-500 tracking-wide">Group Activity</h4>
+        <div id="modalBeerActivity" class="text-sm bg-slate-950/40 p-4 rounded-xl border border-slate-850/60 flex items-center gap-3">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="p-6 pt-4 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between gap-4">
+      <div class="text-left">
+        <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wide block">Active Pour Size</span>
+        <span id="modalActivePourText" class="text-xs font-extrabold text-slate-300">100ml</span>
+      </div>
+      <button id="modalLogButton" class="bg-festival text-slate-950 text-sm font-extrabold px-6 py-3 rounded-xl active:scale-95 transition-transform flex-1 text-center">
+        Log Pour
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Units Detail & BAC Modal -->
+<div id="unitsDetailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeUnitsDetail()">
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150">
+    
+    <!-- Modal Header -->
+    <div class="p-6 pb-4 border-b border-slate-800/80 flex items-center justify-between">
+      <div>
+        <h3 class="text-xl font-black text-slate-100 leading-none">Personal Session Stats</h3>
+        <p class="text-xs text-slate-400 mt-1.5">Deep dive into your current festival pacing</p>
+      </div>
+      <button onclick="closeUnitsDetail()" class="text-slate-400 hover:text-slate-200 text-2xl font-bold p-1 leading-none">&times;</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-6 overflow-y-auto">
+      
+      <!-- Primary Fun Metrics Grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-950 border border-slate-850 p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-500 uppercase font-black tracking-wide block">Weighted Avg ABV</span>
+          <span id="statWeightedABV" class="text-lg font-black text-slate-100">0.0%</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-850 p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-500 uppercase font-black tracking-wide block">Total Volume</span>
+          <span id="statTotalVolume" class="text-lg font-black text-slate-100">0 ml</span>
+        </div>
+        <div class="bg-slate-950 border border-slate-850 p-3.5 rounded-xl col-span-2">
+          <span class="text-[10px] text-slate-500 uppercase font-black tracking-wide block">Heaviest Hitter</span>
+          <span id="statHeaviestHitter" class="text-sm font-black text-festival truncate block mt-0.5">None yet</span>
+        </div>
+      </div>
+
+      <!-- BAC Calculator Section -->
+      <div class="border-t border-slate-800/60 pt-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs uppercase font-black text-slate-400 tracking-wider">Dynamic Timeline BAC</h4>
+          <span id="sessionDurationBadge" class="text-[9px] bg-slate-850 text-slate-400 px-2.5 py-0.5 rounded font-bold">No active session</span>
+        </div>
+
+        <!-- Dynamic Timeline Inputs (Gender and Weight only) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Sex</label>
+            <select id="bacGender" onchange="calculateBAC()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Weight</label>
+            <div class="flex">
+              <input id="bacWeight" type="number" value="65" oninput="calculateBAC()" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-l-lg p-2.5 focus:border-festival focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+              <select id="bacWeightUnit" onchange="calculateBAC()" class="bg-slate-850 border border-y-slate-800 border-r-slate-800 text-slate-300 text-[10px] rounded-r-lg px-2 focus:ring-0">
+                <option value="kg">kg</option>
+                <option value="lbs">lbs</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAC Score Output Display -->
+        <div class="bg-slate-950 border border-slate-850 p-5 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase font-black tracking-wide block">Estimated BAC</span>
+            <span id="bacPercentage" class="text-3xl font-black text-slate-100 mt-1 block">0.000%</span>
+          </div>
+          <div class="text-right max-w-[55%]">
+            <span id="bacStatusBadge" class="inline-block text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1 bg-slate-800 text-slate-400">Sober</span>
+            <p id="bacWarningText" class="text-slate-500 text-[10px] leading-tight">No recorded logs to calculate profile.</p>
+          </div>
+        </div>
+
+        <!-- Est Sober Target Display -->
+        <div class="bg-slate-950 border border-slate-850 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-500 uppercase font-black tracking-wide block">Est. Time Until Sober</span>
+            <span id="statSoberCountdown" class="text-lg font-black text-emerald-400 mt-0.5 block">Sober Now</span>
+          </div>
+          <div class="text-3xl">⏱️</div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800/60 pt-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs uppercase font-black text-slate-400 tracking-wider">Festival Achievements</h4>
+            <span id="trophyCountBadge" class="text-[9px] bg-festival/10 text-festival px-2 py-0.5 rounded font-bold border border-festival/20">0 / 6 Unlocked</span>
+          </div>
+          <div id="achievementsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Footer Disclaimer -->
+    <div class="p-5 bg-slate-950/40 border-t border-slate-800/80 text-center">
+      <p class="text-[9px] text-slate-500 leading-normal max-w-sm mx-auto">
+        <strong>Disclaimer:</strong> This calculation uses the Widmark Formula over your log sequence. Do not rely on this score to determine fitness to drive or operate machinery.
+      </p>
+    </div>
+  </div>
+</div>
 
   <!-- Main JavaScript Logic -->
   <script src="app.js" defer></script>
