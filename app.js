@@ -889,6 +889,9 @@ async function removeLog(logId) {
     updateDashboard();
     calculateBAC();
   }
+
+  await fetchLiveStandings();
+
 }
 
 async function clearAllLogs() {
