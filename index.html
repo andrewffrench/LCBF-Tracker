@@ -176,6 +176,107 @@
     </div>
   </div>
 
+  <div id="beerDetailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <span id="modalBeerStyle" class="text-[10px] uppercase font-bold text-festival tracking-wider">Style</span>
+        <button onclick="closeBeerDetail()" class="text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
+      </div>
+      <div>
+        <h3 id="modalBeerName" class="text-xl font-black text-slate-100">Beer Name</h3>
+        <p id="modalBeerBrewer" class="text-sm font-semibold text-slate-400">Brewery</p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-850 text-center">
+        <div>
+          <span class="block text-[10px] uppercase font-bold text-slate-500">ABV</span>
+          <span id="modalBeerABV" class="text-sm font-bold text-slate-200">0.0%</span>
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-bold text-slate-500">Pour Size</span>
+          <span id="modalActivePourText" class="text-sm font-bold text-slate-200">-</span>
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-bold text-slate-500">Units</span>
+          <span id="modalBeerUnits" class="text-sm font-bold text-festival">0.00 u</span>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-xs uppercase font-bold text-slate-500 mb-1">Description</h4>
+        <p id="modalBeerDescription" class="text-xs text-slate-300 leading-relaxed"></p>
+      </div>
+      <div id="modalBeerActivity" class="bg-slate-950/60 border border-slate-850 p-3 rounded-xl flex items-center gap-3">
+        <!-- Rendered dynamically -->
+      </div>
+      <button id="modalLogButton" class="w-full py-3 bg-festival text-slate-950 font-black rounded-xl text-sm transition-all active:scale-95">
+        + Log Pour
+      </button>
+    </div>
+  </div>
+
+  <div id="unitsDetailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-black text-slate-100">📊 Alcohol & BAC Profile</h3>
+        <button onclick="closeUnitsDetail()" class="text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
+      </div>
+      
+      <!-- BAC Readout -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 text-center space-y-1">
+        <span id="bacStatusBadge" class="inline-block text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1 bg-slate-800 text-slate-400">Sober</span>
+        <span id="bacPercentage" class="block text-3xl font-black text-slate-100">0.000%</span>
+        <p id="bacWarningText" class="text-[11px] text-slate-400 px-2"></p>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+          <span class="text-[10px] uppercase font-bold text-slate-500 block">Total Volume</span>
+          <span id="statTotalVolume" class="text-sm font-bold text-slate-200">0 ml</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+          <span class="text-[10px] uppercase font-bold text-slate-500 block">Weighted ABV</span>
+          <span id="statWeightedABV" class="text-sm font-bold text-slate-200">0.0%</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Heaviest Hitter</span>
+        <span id="statHeaviestHitter" class="text-sm font-bold text-slate-200">None</span>
+      </div>
+
+      <div class="bg-slate-950 p-3 rounded-xl border border-slate-850">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Estimated Time to Sober</span>
+        <span id="statSoberCountdown" class="text-sm font-bold text-slate-200">Sober Now</span>
+        <span id="sessionDurationBadge" class="text-[9px] text-slate-500 block mt-0.5">No active session</span>
+      </div>
+
+      <!-- Inputs for the BAC Calculator -->
+      <div class="border-t border-slate-800 pt-3 space-y-3">
+        <h4 class="text-xs uppercase font-bold text-slate-400">BAC Parameters</h4>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-1">Biological Sex</label>
+            <select id="bacGender" onchange="calculateBAC()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2 focus:border-festival focus:ring-0">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-1">Weight</label>
+            <input id="bacWeight" type="number" value="70" oninput="calculateBAC()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2 focus:border-festival focus:ring-0">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-1">Unit</label>
+            <select id="bacWeightUnit" onchange="calculateBAC()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2 focus:border-festival focus:ring-0">
+              <option value="kg">kg</option>
+              <option value="lbs">lbs</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main JavaScript Logic -->
   <script src="app.js" defer></script>
   

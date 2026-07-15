@@ -370,6 +370,10 @@ function calculateBAC() {
   const soberCountdownEl = document.getElementById('statSoberCountdown');
   const sessionBadge = document.getElementById('sessionDurationBadge');
 
+  if (!bacPercentageEl || !statusBadge || !warningText || !soberCountdownEl || !sessionBadge) {
+    return;
+  }
+
   if (totalUnits === 0) {
     bacPercentageEl.innerText = "0.000%";
     statusBadge.className = "inline-block text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1 bg-slate-800 text-slate-400";
@@ -728,6 +732,12 @@ function renderBeerList(beers) {
 function openBeerDetail(beerId) {
   const beer = beerDatabase.find(b => String(b.wab_beer_id) === String(beerId));
   if (!beer) return;
+
+  const modal = document.getElementById('beerDetailModal');
+  if (!modal) {
+    console.warn("beerDetailModal structure missing from HTML layout.");
+    return;
+  }
 
   document.getElementById('modalBeerStyle').innerText = beer.untappd_style.toUpperCase();
   document.getElementById('modalBeerName').innerText = beer.beer_name;
