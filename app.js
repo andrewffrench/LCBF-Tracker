@@ -801,10 +801,10 @@ function closeBeerDetail() {
 }
 
 function filterBeers() {
-  const searchQuery = document.getElementById('searchBar').value.toLowerCase().trim();
-  const activeStyleFilter = document.getElementById('filterStyle').value;
-  const activeStatusFilter = document.getElementById('filterStatus').value;
-  const sortOption = document.getElementById('sortOption').value;
+  const searchQuery = document.getElementById('searchBar')?.value?.toLowerCase()?.trim() || '';
+  const activeStyleFilter = document.getElementById('filterStyle')?.value || 'all';
+  const activeStatusFilter = document.getElementById('filterStatus')?.value || 'all';
+  const sortOption = document.getElementById('sortOption')?.value || 'name_asc';
 
   let filtered = [...beerDatabase];
 
