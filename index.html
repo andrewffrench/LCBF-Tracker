@@ -68,19 +68,57 @@
   <!-- Main Scrollable Content -->
   <main class="flex-1 max-w-md mx-auto w-full px-4 pt-4 space-y-6">
 
-    <!-- Search Input -->
-    <section>
-      <div class="relative">
-        <span class="absolute inset-y-0 left-3 flex items-center text-slate-500">🔍</span>
-        <input 
-          type="text" 
-          id="searchBar" 
-          oninput="filterBeers()" 
-          placeholder="Search by beer or brewery..." 
-          class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-festival focus:ring-1 focus:ring-festival transition-all"
-        />
-      </div>
-    </section>
+<!-- Search, Filter & Sort Controls -->
+<div class="space-y-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-md">
+  <!-- Existing Search Input -->
+  <div class="relative">
+    <input 
+      id="searchBar" 
+      type="text" 
+      oninput="filterBeers()" 
+      placeholder="Search by beer or brewery..." 
+      class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-xl pl-10 pr-4 py-3 focus:border-festival focus:ring-0 placeholder-slate-500"
+    >
+    <span class="absolute left-3 top-3.5 text-slate-500">🔍</span>
+  </div>
+
+  <!-- Filter & Sort Row -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+    <!-- Style Filter Dropdown -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Beer Style</label>
+      <select id="filterStyle" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="all">All Styles</option>
+        <option value="hoppy">IPAs & Pale Ales</option>
+        <option value="dark">Stouts, Porters & Darks</option>
+        <option value="sour">Sours, Wilds & Saisons</option>
+        <option value="crisp">Lagers, Pilsners & Light</option>
+      </select>
+    </div>
+
+    <!-- Status Filter Dropdown (Untried vs Logged) -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Logged Status</label>
+      <select id="filterStatus" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="all">All Beers</option>
+        <option value="untried">Not Yet Tried ❌</option>
+        <option value="logged">Already Logged ✅</option>
+      </select>
+    </div>
+
+    <!-- Sorting Dropdown -->
+    <div>
+      <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Sort By</label>
+      <select id="sortOption" onchange="filterBeers()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:border-festival focus:ring-0">
+        <option value="featured">Default (Featured)</option>
+        <option value="abv_desc">ABV: High to Low 📈</option>
+        <option value="abv_asc">ABV: Low to High 📉</option>
+        <option value="name_asc">Beer Name: A-Z</option>
+        <option value="brewer_asc">Brewery Name: A-Z</option>
+      </select>
+    </div>
+  </div>
+</div>
 
     <!-- Interactive Beer List -->
     <section>
