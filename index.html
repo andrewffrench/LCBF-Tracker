@@ -80,6 +80,7 @@
       class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-xl pl-10 pr-4 py-3 focus:border-festival focus:ring-0 placeholder-slate-500"
     >
     <span class="absolute left-3 top-3.5 text-slate-500">🔍</span>
+    <span id="global-favorite-filter" class="heart-icon search-heart" title="Filter by Favourites">♥</span>
   </div>
 
   <!-- Filter & Sort Row -->
@@ -183,9 +184,14 @@
         <button onclick="closeBeerDetail()" class="text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
       </div>
       <div>
-        <h3 id="modalBeerName" class="text-xl font-black text-slate-100">Beer Name</h3>
-        <p id="modalBeerBrewer" class="text-sm font-semibold text-slate-400">Brewery</p>
-      </div>
+  <div class="relative flex items-center justify-between gap-4">
+    <h3 id="modalBeerName" class="text-xl font-black text-slate-100 max-w-[85%]">Beer Name</h3>
+    <button id="modalFavoriteBtn" class="favorite-btn text-2xl transition-transform active:scale-95 cursor-pointer select-none">
+      ♥
+    </button>
+  </div>
+  <p id="modalBeerBrewer" class="text-sm font-semibold text-slate-400">Brewery</p>
+</div>
       <div class="grid grid-cols-3 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-850 text-center">
         <div>
           <span class="block text-[10px] uppercase font-bold text-slate-500">ABV</span>
