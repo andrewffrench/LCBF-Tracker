@@ -10,6 +10,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // 1. Beer Database Array (Initially Empty)
 // ==========================================
 let beerDatabase = [];
+let favoritedBeerIds = new Set(); // Fast lookup collection for active ids
+let showOnlyFavorites = false;
 
 // ==========================================
 // 2. Local State Management
@@ -698,6 +700,7 @@ function renderBeerList(beers) {
   }
 
   listContainer.innerHTML = beers.map(beer => {
+    const isFavorite = favoritedBeerIds.has(String(beer.wab_beer_id));
     return `
       <div 
         onclick="openBeerDetail('${beer.wab_beer_id}')"
@@ -706,9 +709,17 @@ function renderBeerList(beers) {
         <div class="space-y-1">
           <div class="flex items-start justify-between">
             <h4 class="font-bold text-slate-100 text-base leading-tight">${beer.beer_name}</h4>
-            <span class="bg-slate-800 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md shrink-0 ml-2">
-              ${beer.abv}%
-            </span>
+            <div class="flex items-center gap-2 shrink-0 ml-2">
+              <button 
+                onclick="event.stopPropagation(); toggleFavoriteState('${beer.wab_beer_id}')" 
+                class="favorite-btn text-base leading-none transition-colors ${isFavorite ? 'text-red-500' : 'text-slate-500 hover:text-slate-400'}"
+              >
+                ♥
+              </button>
+              <span class="bg-slate-800 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md">
+                ${beer.abv}%
+              </span>
+            </div>
           </div>
           <p class="text-xs font-semibold text-festival uppercase tracking-wider">${beer.brewer_name}</p>
           <p class="text-slate-400 text-xs line-clamp-2 mt-1 leading-normal">${beer.description}</p>
@@ -741,6 +752,32 @@ function openBeerDetail(beerId) {
 
   document.getElementById('modalBeerStyle').innerText = beer.untappd_style.toUpperCase();
   document.getElementById('modalBeerName').innerText = beer.beer_name;
+
+  // Configure the favorite button functionality
+  const favoriteBtn = document.getElementById('modalFavoriteBtn');
+  
+  // Cleanly apply or remove Tailwind color utilities based on live state
+  const updateModalHeartUI = () => {
+    const isFavorite = favoritedBeerIds.has(String(beer.wab_beer_id));
+    if (isFavorite) {
+      favoriteBtn.classList.add('text-red-500');
+      favoriteBtn.classList.remove('text-slate-500', 'hover:text-slate-400');
+    } else {
+      favoriteBtn.classList.remove('text-red-500');
+      favoriteBtn.classList.add('text-slate-500', 'hover:text-slate-400');
+    }
+  };
+
+  // Sync color state on open
+  updateModalHeartUI();
+
+  // Route click through your upstream database logic
+  favoriteBtn.onclick = async (e) => {
+    e.stopPropagation();
+    await toggleFavoriteState(beer.wab_beer_id);
+    updateModalHeartUI(); // Redraw heart color instantly inside the modal
+  };
+
   document.getElementById('modalBeerBrewer').innerText = beer.brewer_name;
   document.getElementById('modalBeerABV').innerText = `${beer.abv}%`;
   
@@ -805,10 +842,92 @@ function openBeerDetail(beerId) {
 
   document.getElementById('beerDetailModal').classList.remove('hidden');
 }
-
 function closeBeerDetail() {
   document.getElementById('beerDetailModal').classList.add('hidden');
 }
+
+// --- 2. Initialize and Sync Favourites ---
+async function loadUserFavorites() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return; // Fallback gracefully if not logged in
+
+  const { data, error } = await supabaseClient
+    .from('beer_favorites')
+    .select('beer_id')
+    .eq('user_id', user.id);
+
+  if (!error && data) {
+    favoritedBeerIds = new Set(data.map(item => item.beer_id.toString()));
+  }
+}
+
+// --- 3. Persistent Toggle Upstream Sync ---
+async function toggleFavoriteState(beerId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) {
+    alert("Please log in to save favorites.");
+    return;
+  }
+
+  const idString = beerId.toString();
+  
+  if (favoritedBeerIds.has(idString)) {
+    // Remove preference from storage
+    const { error } = await supabaseClient
+      .from('beer_favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('beer_id', idString);
+
+    if (!error) favoritedBeerIds.delete(idString);
+  } else {
+    // Write choice into database pipeline
+    const { error } = await supabaseClient
+      .from('beer_favorites')
+      .insert([{ user_id: user.id, beer_id: idString }]);
+
+    if (!error) favoritedBeerIds.add(idString);
+  }
+
+  // Refresh UI layouts cleanly to catch changes immediately
+  filterBeers();
+}
+
+// --- 5. Event Binding Listeners Configuration ---
+function setupFavoriteEventListeners() {
+  // Search bar right-aligned master toggle controller tracking
+  const globalToggle = document.getElementById('global-favorite-filter');
+  if (globalToggle) {
+    // Set initial layout appearance color
+    globalToggle.classList.add('text-slate-500', 'transition-colors', 'cursor-pointer', 'select-none');
+
+    globalToggle.addEventListener('click', () => {
+      showOnlyFavorites = !showOnlyFavorites;
+      
+      if (showOnlyFavorites) {
+        globalToggle.classList.add('text-red-500');
+        globalToggle.classList.remove('text-slate-500');
+      } else {
+        globalToggle.classList.remove('text-red-500');
+        globalToggle.classList.add('text-slate-500');
+      }
+      
+      filterBeers();
+    });
+  }
+}
+// --- 6. Complete Initialization Integration hook ---
+async function appInit() {
+  // 1. Fetch backend definitions or API targets
+  // 2. Fetch user data preferences:
+  await loadUserFavorites();
+  // 3. Register inputs and tracking loops
+  setupFavoriteEventListeners();
+  // 4. Initial paint output invocation
+  filterBeers();
+}
+
+document.addEventListener('DOMContentLoaded', appInit);
 
 function filterBeers() {
   const searchQuery = document.getElementById('searchBar')?.value?.toLowerCase()?.trim() || '';
@@ -817,6 +936,11 @@ function filterBeers() {
   const sortOption = document.getElementById('sortOption')?.value || 'name_asc';
 
   let filtered = [...beerDatabase];
+
+  // Global Favorites Filter
+  if (showOnlyFavorites) {
+    filtered = filtered.filter(beer => favoritedBeerIds.has(String(beer.wab_beer_id)));
+  }
 
   if (searchQuery) {
     filtered = filtered.filter(beer => 
